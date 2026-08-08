@@ -109,10 +109,30 @@ netp2/
 - 建立 CMake 根工程与模块子目录。
 - 建立测试骨架（GoogleTest 或同级方案）。
 - 建立 CI 基础流水线（编译 + 单测）。
+- 打通 Runtime Spine（单核）：`io_context` + `acceptor` + `co_spawn` 最小事件循环。
+- 明确 Proactor 最小验收：I/O 路径为 awaitable 协程风格且无阻塞调用。
+
+Phase A 执行状态（2026-08-08）：已完成
+- 构建组织：根 `CMakeLists.txt` 已切换为 `src/`、`tests/` 子目录化管理。
+- Runtime Spine：已落地 `RuntimeSpine`（单核 `io_context` + `acceptor` + `co_spawn` + awaitable I/O）。
+- 应用入口：`src/app/main.cpp` 已接入 Phase A 运行主循环与信号优雅停止。
+- 测试验收：新增 `tests/integration/runtime_spine_integration_test.cpp`，验证最小 accept->read->write 链路。
+- CI 对齐：工作流已安装 Boost 依赖，保持编译与测试可执行。
+
+Phase A 本地验收命令：
+1. `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug`
+2. `cmake --build build`
+3. `ctest --test-dir build --output-on-failure`
 
 ### Phase B（Day 3-7）
-- 打通最小可运行链路：accept -> parse -> route -> mock upstream -> response。
+- 完成 Thread-Per-Core 落地：多 Worker、每核独立 `io_context`、同端口 `SO_REUSEPORT` 接入。
+- 打通同核闭环最小链路：accept -> parse -> route -> mock upstream -> response。
+- 完成 executor 亲和性约束：请求主链路不得隐式跨 executor 切换。
 - 引入 thread_local metrics 与基础 Prometheus 导出。
+
+Phase A-B 里程碑约束：
+- `12.1 全局运行模型` MUST 在 Phase B 结束前达成并验收。
+- `12.2 协程与执行语义` MUST 在 Phase B 结束前达成并验收。
 
 ### Phase C（Week 2）
 - 引入限流、断路器、连接池、RCU 热重载。
@@ -126,6 +146,7 @@ netp2/
 进入大规模功能开发前必须满足：
 1. 工程可一键构建与运行（本地 + CI）。
 2. 四套构建配置可独立执行。
-3. 基础集成测试与健康检查通过。
-4. 基线性能报告可生成且可比对。
-5. 文档与实现引用链完整（README -> 架构分册 -> ADR）。
+3. Proactor + Thread-Per-Core 主链路已达标（多 Worker、独立 `io_context`、`SO_REUSEPORT`、协程 awaitable 风格）。
+4. 基础集成测试与健康检查通过。
+5. 基线性能报告可生成且可比对。
+6. 文档与实现引用链完整（README -> 架构分册 -> ADR）。

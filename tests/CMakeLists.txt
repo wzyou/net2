@@ -1,0 +1,19 @@
+if(NOT NETP2_BUILD_TESTS)
+    return()
+endif()
+
+add_executable(netp2_smoke_test
+    unit/smoke_test.cpp
+)
+target_link_libraries(netp2_smoke_test PRIVATE netp2_core)
+netp2_enable_warnings(netp2_smoke_test)
+netp2_enable_sanitizers(netp2_smoke_test)
+add_test(NAME netp2_smoke_test COMMAND netp2_smoke_test)
+
+add_executable(netp2_runtime_spine_integration_test
+    integration/runtime_spine_integration_test.cpp
+)
+target_link_libraries(netp2_runtime_spine_integration_test PRIVATE netp2_core)
+netp2_enable_warnings(netp2_runtime_spine_integration_test)
+netp2_enable_sanitizers(netp2_runtime_spine_integration_test)
+add_test(NAME netp2_runtime_spine_integration_test COMMAND netp2_runtime_spine_integration_test)

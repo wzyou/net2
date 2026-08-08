@@ -1,0 +1,27 @@
+add_library(netp2_core
+    runtime/spine.cpp
+)
+
+target_include_directories(netp2_core PUBLIC
+    "${CMAKE_SOURCE_DIR}/include"
+)
+
+target_compile_features(netp2_core PUBLIC cxx_std_20)
+target_compile_definitions(netp2_core PUBLIC BOOST_ERROR_CODE_HEADER_ONLY)
+
+if(TARGET Boost::headers)
+    target_link_libraries(netp2_core PUBLIC Boost::headers Threads::Threads)
+else()
+    target_link_libraries(netp2_core PUBLIC Boost::boost Threads::Threads)
+endif()
+
+netp2_enable_warnings(netp2_core)
+netp2_enable_sanitizers(netp2_core)
+
+add_executable(netp2_gateway
+    app/main.cpp
+)
+
+target_link_libraries(netp2_gateway PRIVATE netp2_core)
+netp2_enable_warnings(netp2_gateway)
+netp2_enable_sanitizers(netp2_gateway)

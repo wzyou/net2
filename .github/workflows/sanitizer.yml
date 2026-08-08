@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libboost-system-dev
 
       - name: Configure ASan
         run: cmake -S . -B build-asan -G Ninja -DNETP2_ENABLE_ASAN=ON -DCMAKE_BUILD_TYPE=Debug
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libboost-system-dev
 
       - name: Configure TSan
         run: cmake -S . -B build-tsan -G Ninja -DNETP2_ENABLE_TSAN=ON -DCMAKE_BUILD_TYPE=Debug

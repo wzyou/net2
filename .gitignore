@@ -11,6 +11,7 @@
 /Makefile
 /compile_commands.json
 /Testing/
+/.cache/
 
 # Generic binary artifacts
 *.o
