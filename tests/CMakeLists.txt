@@ -58,6 +58,15 @@ netp2_enable_warnings(netp2_config_snapshot_test)
 netp2_enable_sanitizers(netp2_config_snapshot_test)
 add_test(NAME netp2_config_snapshot_test COMMAND netp2_config_snapshot_test)
 
+# Race condition tests (run with TSan build)
+add_executable(netp2_config_race_test
+    race/config_race_test.cpp
+)
+target_link_libraries(netp2_config_race_test PRIVATE netp2_core)
+netp2_enable_warnings(netp2_config_race_test)
+netp2_enable_sanitizers(netp2_config_race_test)
+add_test(NAME netp2_config_race_test COMMAND netp2_config_race_test)
+
 add_executable(netp2_runtime_spine_integration_test
     integration/runtime_spine_integration_test.cpp
 )
