@@ -115,7 +115,7 @@ public:
 
 private:
     // llhttp 回调函数
-    static int on_message_begin(llhttp_t* parser) {
+    static int on_message_begin([[maybe_unused]] llhttp_t* parser) {
         return 0;
     }
 
@@ -187,7 +187,7 @@ private:
         return 0;
     }
 
-    static int on_message_complete(llhttp_t* parser) {
+    static int on_message_complete([[maybe_unused]] llhttp_t* parser) {
         return 0;
     }
 
