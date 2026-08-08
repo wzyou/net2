@@ -21,6 +21,7 @@ public:
 
     std::size_t worker_count() const;
     std::uint16_t local_port() const;
+    std::uint64_t total_affinity_violation_count() const;
 
 private:
     struct Worker {

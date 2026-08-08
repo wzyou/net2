@@ -136,6 +136,11 @@ Phase B 执行状态（Step 1，2026-08-08）：已完成
 - 主程序已切换为按 CPU 核数启动 Worker，保留信号驱动的优雅停止流程。
 - 新增集成测试：`netp2_worker_runtime_integration_test`，验证多 Worker 接入后请求可达。
 
+Phase B 执行状态（Step 2，2026-08-08）：已完成
+- 在 `RuntimeSpine` 的 accept 与连接协程路径新增 executor 亲和性检查点。
+- 新增违规计数器（per-spine 与 runtime 聚合），用于验证请求主链路无隐式跨 executor 切换。
+- 在 `netp2_worker_runtime_integration_test` 增加断言：亲和性违规计数必须为 0。
+
 Phase A-B 里程碑约束：
 - `12.1 全局运行模型` MUST 在 Phase B 结束前达成并验收。
 - `12.2 协程与执行语义` MUST 在 Phase B 结束前达成并验收。

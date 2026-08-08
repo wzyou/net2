@@ -81,6 +81,8 @@ int main() {
                     ok = ok && wait_until_ready(config.listen_port);
                 }
 
+                ok = ok && (runtime.total_affinity_violation_count() == 0);
+
                 runtime.stop();
                 return ok ? 0 : 1;
             } catch (...) {
