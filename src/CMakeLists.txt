@@ -1,5 +1,6 @@
 add_library(netp2_core
     observability/metrics.cpp
+    protocol/http1_codec.cpp
     runtime/gateway_runtime.cpp
     runtime/spine.cpp
 )
@@ -10,6 +11,10 @@ target_include_directories(netp2_core PUBLIC
 
 target_compile_features(netp2_core PUBLIC cxx_std_20)
 target_compile_definitions(netp2_core PUBLIC BOOST_ERROR_CODE_HEADER_ONLY)
+
+# Link llhttp
+target_include_directories(netp2_core PRIVATE ${LLHTTP_INCLUDE_DIR})
+target_link_libraries(netp2_core PRIVATE ${LLHTTP_LIBRARY})
 
 if(TARGET Boost::headers)
     target_link_libraries(netp2_core PUBLIC Boost::headers Threads::Threads)

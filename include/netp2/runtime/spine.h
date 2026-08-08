@@ -8,6 +8,8 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include "netp2/protocol/http1_codec.h"
+
 namespace netp2::runtime {
 
 namespace asio = boost::asio;
@@ -41,6 +43,7 @@ private:
     tcp::acceptor acceptor_;
     SpineConfig config_;
     std::atomic<std::uint64_t> affinity_violation_count_{0};
+    // 移除共享的 codec_，每个连接创建独立实例
 };
 
 }  // namespace netp2::runtime

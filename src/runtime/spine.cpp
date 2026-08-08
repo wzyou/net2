@@ -19,6 +19,7 @@
 #include <boost/asio/write.hpp>
 
 #include "netp2/observability/metrics.h"
+#include "netp2/protocol/request_context.h"
 
 namespace netp2::runtime {
 
@@ -28,51 +29,14 @@ constexpr std::string_view kMockUpstreamPath = "/proxy/mock";
 constexpr std::string_view kLegacyPhaseABody = "netp2 phase-a\n";
 constexpr std::string_view kMockUpstreamBody = "mock upstream ok\n";
 constexpr std::string_view kNotFoundBody = "route not found\n";
-constexpr std::string_view kBadRequestBody = "bad request\n";
 constexpr std::string_view kMethodNotAllowedBody = "method not allowed\n";
 
 constexpr std::string_view kMetricsPath = "/metrics";
-
-struct ParsedRequestLine {
-    std::string_view method;
-    std::string_view path;
-    std::string_view version;
-};
 
 enum class RouteDecision {
     kMockUpstream,
     kNotFound,
 };
-
-std::optional<ParsedRequestLine> parse_request_line(std::string_view request) {
-    const auto line_end = request.find("\r\n");
-    if (line_end == std::string_view::npos) {
-        return std::nullopt;
-    }
-
-    const std::string_view line = request.substr(0, line_end);
-    const auto first_space = line.find(' ');
-    if (first_space == std::string_view::npos || first_space == 0) {
-        return std::nullopt;
-    }
-
-    const auto second_space = line.find(' ', first_space + 1);
-    if (second_space == std::string_view::npos || second_space == first_space + 1 ||
-        second_space + 1 >= line.size()) {
-        return std::nullopt;
-    }
-
-    ParsedRequestLine parsed{
-        line.substr(0, first_space),
-        line.substr(first_space + 1, second_space - first_space - 1),
-        line.substr(second_space + 1)};
-
-    if (!parsed.version.starts_with("HTTP/1.")) {
-        return std::nullopt;
-    }
-
-    return parsed;
-}
 
 RouteDecision route_request(std::string_view path) {
     if (path == kDefaultRoutePath || path == kMockUpstreamPath) {
@@ -210,7 +174,10 @@ asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
         }
     }
 
-    std::array<char, 1024> request_buffer{};
+    // 每个连接创建独立的 codec 实例，避免并发冲突
+    protocol::Http1Codec codec;
+
+    std::array<char, 8192> request_buffer{};
     boost::system::error_code read_ec;
 
     const std::size_t request_bytes = co_await socket.async_read_some(
@@ -227,14 +194,24 @@ asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
     std::string response_payload;
     int response_status_code = 200;
 
-    const auto parsed = parse_request_line(request_view);
-    if (!parsed) {
-        response_status_code = 400;
-        response_payload = build_http_response(400, "Bad Request", kBadRequestBody);
-    } else if (parsed->method != "GET") {
+    // 使用 Http1Codec 解析请求
+    protocol::RequestContext ctx;
+    const auto parse_result = codec.parse(request_view, ctx);
+
+    if (parse_result != protocol::ParseError::kSuccess) {
+        // 解析失败，返回对应的错误响应
+        response_status_code = protocol::parse_error_to_http_status(parse_result);
+        const std::string error_desc(protocol::parse_error_to_string(parse_result));
+        response_payload = build_http_response(
+            response_status_code,
+            "Bad Request",
+            error_desc);
+    } else if (ctx.method != "GET") {
+        // 当前只支持 GET 方法
         response_status_code = 405;
         response_payload = build_http_response(405, "Method Not Allowed", kMethodNotAllowedBody);
-    } else if (parsed->path == kMetricsPath) {
+    } else if (ctx.target == kMetricsPath) {
+        // 指标导出端点
         const std::string metrics_body =
             netp2::observability::MetricsRegistry::instance().render_prometheus();
         response_payload = build_http_response(
@@ -243,9 +220,10 @@ asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
             metrics_body,
             "text/plain; version=0.0.4; charset=utf-8");
     } else {
-        switch (route_request(parsed->path)) {
+        // 路由决策
+        switch (route_request(ctx.target)) {
         case RouteDecision::kMockUpstream: {
-            const std::string_view upstream_body = co_await mock_upstream_call(parsed->path);
+            const std::string_view upstream_body = co_await mock_upstream_call(ctx.target);
             response_status_code = 200;
             response_payload = build_http_response(200, "OK", upstream_body);
             break;
