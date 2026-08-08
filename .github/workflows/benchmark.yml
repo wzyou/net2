@@ -1,14 +1,113 @@
-name: benchmark
+name: Performance Benchmark
 
 on:
-  workflow_dispatch:
+  pull_request:
+    branches: [main, develop, dev]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'CMakeLists.txt'
+      - 'benchmarks/**'
+      - '.github/workflows/benchmark.yml'
+  workflow_dispatch:  # 允许手动触发
+  schedule:
+    - cron: '0 2 * * 0'  # 每周日凌晨 2 点定期执行
 
 jobs:
-  benchmark-placeholder:
+  benchmark:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
     steps:
-      - uses: actions/checkout@v4
-      - name: Benchmark scaffold note
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
         run: |
-          echo "Benchmark workflow scaffold is ready."
-          echo "Add wrk/ghz invocation scripts under benchmarks/ and scripts/ci."
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            libboost-all-dev \
+            wrk \
+            python3
+      
+      - name: Build RelWithDebInfo
+        run: |
+          cmake -S . -B build-release \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_CXX_FLAGS="-O2"
+          cmake --build build-release -j$(nproc)
+      
+      - name: Run benchmark gate
+        run: |
+          BUILD_DIR="$PWD/build-release" ./scripts/ci/run_benchmark_gate.sh
+        env:
+          BASELINE_FILE: benchmarks/wrk/baseline_relwithdebinfo_30s.json
+      
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: |
+            benchmarks/wrk/ci_current_run.json
+            benchmarks/wrk/wrk_output.txt
+          retention-days: 30
+      
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const currentFile = 'benchmarks/wrk/ci_current_run.json';
+            const baselineFile = 'benchmarks/wrk/baseline_relwithdebinfo_30s.json';
+            
+            if (!fs.existsSync(currentFile) || !fs.existsSync(baselineFile)) {
+              console.log('Benchmark files not found, skipping comment');
+              return;
+            }
+            
+            const current = JSON.parse(fs.readFileSync(currentFile, 'utf8'));
+            const baseline = JSON.parse(fs.readFileSync(baselineFile, 'utf8'));
+            
+            const rpsChange = ((current.rps - baseline.rps) / baseline.rps * 100).toFixed(2);
+            const p99Change = ((current.p99_ms - baseline.p99_ms) / baseline.p99_ms * 100).toFixed(2);
+            
+            const rpsIcon = parseFloat(rpsChange) >= -5 ? '✅' : '❌';
+            const p99Icon = parseFloat(p99Change) <= 10 ? '✅' : '❌';
+            const errorIcon = current.error_rate <= 0.2 ? '✅' : '❌';
+            
+            const body = `## 🚀 Performance Benchmark Results
+            
+            | Metric | Baseline | Current | Change | Status |
+            |--------|----------|---------|--------|--------|
+            | **RPS** | ${baseline.rps.toFixed(2)} | ${current.rps.toFixed(2)} | ${rpsChange}% | ${rpsIcon} |
+            | **P50** | ${baseline.p50_ms.toFixed(2)}ms | ${current.p50_ms.toFixed(2)}ms | ${((current.p50_ms - baseline.p50_ms) / baseline.p50_ms * 100).toFixed(2)}% | ℹ️ |
+            | **P90** | ${baseline.p90_ms.toFixed(2)}ms | ${current.p90_ms.toFixed(2)}ms | ${((current.p90_ms - baseline.p90_ms) / baseline.p90_ms * 100).toFixed(2)}% | ℹ️ |
+            | **P99** | ${baseline.p99_ms.toFixed(2)}ms | ${current.p99_ms.toFixed(2)}ms | ${p99Change}% | ${p99Icon} |
+            | **Error Rate** | ${baseline.error_rate.toFixed(2)}% | ${current.error_rate.toFixed(2)}% | ${(current.error_rate - baseline.error_rate).toFixed(2)}% | ${errorIcon} |
+            
+            **Thresholds:**
+            - RPS drop > 5% ❌
+            - P99 increase > 10% ❌
+            - Error rate > 0.2% ❌
+            
+            <details>
+            <summary>Raw Results</summary>
+            
+            \`\`\`json
+            ${JSON.stringify(current, null, 2)}
+            \`\`\`
+            
+            </details>
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
