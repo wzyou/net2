@@ -2,12 +2,14 @@
 
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+#include "netp2/config/config_snapshot.h"
 #include "netp2/protocol/http1_codec.h"
 #include "netp2/routing/route_snapshot.h"
 
@@ -30,8 +32,9 @@ public:
     void start();
     void stop();
 
-    /// 设置路由快照（C-CONFIG-1 将改为 RCU 发布）
-    void set_route_snapshot(std::shared_ptr<routing::RouteSnapshot> snapshot);
+    /// 热重载路由配置（RCU 语义）
+    /// @param snapshot 新的路由快照
+    void reload_route_config(std::shared_ptr<routing::RouteSnapshot> snapshot);
 
     std::uint16_t local_port() const;
     bool is_open() const;
@@ -47,7 +50,9 @@ private:
     tcp::acceptor acceptor_;
     SpineConfig config_;
     std::atomic<std::uint64_t> affinity_violation_count_{0};
-    std::shared_ptr<routing::RouteSnapshot> route_snapshot_;  // C-CONFIG-1 将改为原子指针 + RCU
+    
+    // RCU 配置快照管理器
+    config::ConfigSnapshotManager<routing::RouteSnapshot> route_config_;
 };
 
 }  // namespace netp2::runtime

@@ -82,7 +82,7 @@ RuntimeSpine::RuntimeSpine(asio::io_context& io, const SpineConfig& config)
     acceptor_.bind(endpoint);
     acceptor_.listen(asio::socket_base::max_listen_connections);
 
-    // 创建默认路由快照
+    // 创建并发布默认路由快照
     auto default_snapshot = std::make_shared<routing::RouteSnapshot>();
     
     // 配置特定路径
@@ -102,11 +102,11 @@ RuntimeSpine::RuntimeSpine(asio::io_context& io, const SpineConfig& config)
     default_snapshot->add_rule(std::move(rule_root));
     default_snapshot->finalize();
     
-    route_snapshot_ = std::move(default_snapshot);
+    route_config_.publish(std::move(default_snapshot));
 }
 
-void RuntimeSpine::set_route_snapshot(std::shared_ptr<routing::RouteSnapshot> snapshot) {
-    route_snapshot_ = std::move(snapshot);
+void RuntimeSpine::reload_route_config(std::shared_ptr<routing::RouteSnapshot> snapshot) {
+    route_config_.publish(std::move(snapshot));
 }
 
 void RuntimeSpine::start() {
@@ -234,8 +234,11 @@ asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
             metrics_body,
             "text/plain; version=0.0.4; charset=utf-8");
     } else {
+        // 加载当前路由快照（RCU read）
+        auto route_snapshot = route_config_.load();
+
         // 使用路由快照进行匹配
-        const auto route_match = route_snapshot_->match(
+        const auto route_match = route_snapshot->match(
             ctx.host,
             ctx.target,
             "127.0.0.1");  // TODO: 从 socket 获取真实 client IP
