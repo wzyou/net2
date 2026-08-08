@@ -11,6 +11,7 @@
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
 #include <boost/asio/redirect_error.hpp>
+#include <boost/asio/this_coro.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/asio/write.hpp>
 
@@ -72,6 +73,30 @@ bool RuntimeSpine::is_open() const {
     return acceptor_.is_open();
 }
 
+std::uint64_t RuntimeSpine::affinity_violation_count() const {
+    return affinity_violation_count_.load(std::memory_order_relaxed);
+}
+
+bool RuntimeSpine::check_socket_executor_affinity(tcp::socket& socket) {
+    const auto& expected_ctx = io_.get_executor().context();
+    const auto& socket_ctx = socket.get_executor().context();
+    if (&socket_ctx != &expected_ctx) {
+        affinity_violation_count_.fetch_add(1, std::memory_order_relaxed);
+        return false;
+    }
+    return true;
+}
+
+asio::awaitable<bool> RuntimeSpine::check_coroutine_executor_affinity() {
+    const auto current_executor = co_await asio::this_coro::executor;
+    const auto& expected_ctx = io_.get_executor().context();
+    if (&current_executor.context() != &expected_ctx) {
+        affinity_violation_count_.fetch_add(1, std::memory_order_relaxed);
+        co_return false;
+    }
+    co_return true;
+}
+
 asio::awaitable<void> RuntimeSpine::accept_loop() {
     for (;;) {
         boost::system::error_code ec;
@@ -84,12 +109,27 @@ asio::awaitable<void> RuntimeSpine::accept_loop() {
             continue;
         }
 
+        if (config_.enable_executor_affinity_checks && !check_socket_executor_affinity(socket)) {
+            boost::system::error_code ignored_ec;
+            [[maybe_unused]] const auto close_result = socket.close(ignored_ec);
+            continue;
+        }
+
         // 连接处理协程与 accept 协程同 executor，保证单核闭环的最小形态。
         asio::co_spawn(io_, handle_connection(std::move(socket)), asio::detached);
     }
 }
 
 asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
+    if (config_.enable_executor_affinity_checks) {
+        if (!check_socket_executor_affinity(socket)) {
+            co_return;
+        }
+        if (!(co_await check_coroutine_executor_affinity())) {
+            co_return;
+        }
+    }
+
     std::array<char, 1024> request_buffer{};
     boost::system::error_code read_ec;
 
@@ -98,6 +138,11 @@ asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
         asio::redirect_error(asio::use_awaitable, read_ec));
 
     if (read_ec && read_ec != asio::error::eof) {
+        co_return;
+    }
+
+    if (config_.enable_executor_affinity_checks &&
+        !(co_await check_coroutine_executor_affinity())) {
         co_return;
     }
 
