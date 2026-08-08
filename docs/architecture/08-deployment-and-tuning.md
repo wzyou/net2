@@ -23,3 +23,10 @@ net.ipv4.tcp_slow_start_after_idle = 0
 - 压测：HTTP 用 wrk，gRPC 用 ghz。
 - 安全：ASan/LSan、TSan 分构建执行。
 - 门禁：吞吐、P99、错误率三维阈值。
+
+## 8.5 MUST 约束核对项
+- MUST 在目标环境校准并固化内核关键参数基线。
+- MUST 维护 Debug/RelWithDebInfo/ASan-LSan/TSan 至少四套构建通道。
+- MUST 在发布前执行 wrk/ghz 压测并产出吞吐、P99、错误率报告。
+- MUST 对性能门禁设置失败阈值并在 CI 中自动判定。
+- MUST 将调优参数变更与回滚策略同步记录到发布文档或 PR。

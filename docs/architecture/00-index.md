@@ -16,6 +16,8 @@
 9. `09-evolution-matrix.md`
 10. `10-request-flow-pseudocode.md`
 11. `11-project-scaffolding.md`
+12. `12-architecture-must-constraints.md`
+13. `13-must-implementation-mapping.md`
 
 ## 范围声明
 - 本目录由“高性能 C++20 协程异步网关 v1.0 全量技术设计”拆分整理而来。

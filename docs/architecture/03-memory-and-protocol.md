@@ -29,3 +29,10 @@ flowchart TD
     G --> P[Thread-Local Upstream HTTP1.1 Pool]
     P --> U[Upstream Cluster]
 ```
+
+## 3.6 MUST 约束核对项
+- MUST 采用 thread_local 资源池并保证借还路径无锁 O(1)。
+- MUST 使用 RAII 管理缓冲生命周期，异常路径自动回收。
+- MUST 通过统一 RequestContext 屏蔽协议实现差异。
+- MUST 维持协议主栈：HTTP/2 使用 nghttp2，HTTP/1.1 使用 llhttp。
+- MUST 避免多余数据拷贝，协议解析与本地缓冲协同工作。

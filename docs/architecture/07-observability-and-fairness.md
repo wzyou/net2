@@ -21,3 +21,10 @@
 - 对热点连接设置 `MAX_CONSECUTIVE_READS` 上限。
 - 触发上限后 `co_await asio::post(...)` 主动让出执行权。
 - 建连超时与读写超时采用 awaitable 组合竞态实现。
+
+## 7.6 MUST 约束核对项
+- MUST 采用 thread_local 指标采样，禁止热路径全局写锁或高频原子争用。
+- MUST 输出至少 P50/P90/P99 延迟、错误率与分路由统计。
+- MUST 保证 `/metrics` 聚合读取不阻塞数据面写入路径。
+- MUST 支持 W3C `traceparent` 解析与透传；缺失时入口补齐 Trace 上下文。
+- MUST 在公平调度点显式让出执行权并保留超时保护。

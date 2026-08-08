@@ -24,3 +24,10 @@
 ## 6.5 管理接口
 - 基础入口：Unix Domain Socket（本地最小暴露面）。
 - 未来扩展：可由 sidecar 对接 xDS/etcd，再转推 UDS。
+
+## 6.6 MUST 约束核对项
+- MUST 使用“新快照构建 -> 按核投递 -> 原子切换 -> 旧版本自然回收”流程。
+- MUST 使用 store-release 发布、load-acquire 读取，并给出 happens-before 证明。
+- MUST 在协程作用域内以 `shared_ptr` 或等价强引用持有快照。
+- MUST 禁止裸指针跨协程长期持有配置对象。
+- MUST 在回收边界未证明前禁止提前释放旧快照。
