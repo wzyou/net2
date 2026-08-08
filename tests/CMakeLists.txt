@@ -42,6 +42,14 @@ netp2_enable_warnings(netp2_circuit_breaker_test)
 netp2_enable_sanitizers(netp2_circuit_breaker_test)
 add_test(NAME netp2_circuit_breaker_test COMMAND netp2_circuit_breaker_test)
 
+add_executable(netp2_connection_pool_test
+    unit/connection_pool_test.cpp
+)
+target_link_libraries(netp2_connection_pool_test PRIVATE netp2_core)
+netp2_enable_warnings(netp2_connection_pool_test)
+netp2_enable_sanitizers(netp2_connection_pool_test)
+add_test(NAME netp2_connection_pool_test COMMAND netp2_connection_pool_test)
+
 add_executable(netp2_runtime_spine_integration_test
     integration/runtime_spine_integration_test.cpp
 )

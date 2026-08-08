@@ -6,6 +6,7 @@ add_library(netp2_core
     routing/route_snapshot.cpp
     runtime/gateway_runtime.cpp
     runtime/spine.cpp
+    upstream/connection_pool.cpp
 )
 
 target_include_directories(netp2_core PUBLIC
