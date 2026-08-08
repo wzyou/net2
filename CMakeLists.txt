@@ -24,17 +24,22 @@ enable_testing()
 find_package(Boost 1.74 REQUIRED)
 find_package(Threads REQUIRED)
 
-# llhttp for HTTP/1.1 parsing
-# Try to find llhttp library
-find_path(LLHTTP_INCLUDE_DIR llhttp.h)
-find_library(LLHTTP_LIBRARY NAMES llhttp libllhttp)
+# llhttp for HTTP/1.1 parsing - fetch from source
+include(FetchContent)
 
-if(NOT LLHTTP_INCLUDE_DIR OR NOT LLHTTP_LIBRARY)
-    message(FATAL_ERROR "llhttp not found. Install with: brew install llhttp (macOS) or apt-get install libllhttp-dev (Linux)")
-endif()
+# Configure llhttp to build static library
+set(LLHTTP_BUILD_SHARED_LIBS OFF CACHE BOOL "Build llhttp shared library" FORCE)
+set(LLHTTP_BUILD_STATIC_LIBS ON CACHE BOOL "Build llhttp static library" FORCE)
 
-message(STATUS "Found llhttp: ${LLHTTP_LIBRARY}")
-message(STATUS "llhttp include: ${LLHTTP_INCLUDE_DIR}")
+FetchContent_Declare(
+    llhttp
+    URL "https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.4.3.tar.gz"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+
+FetchContent_MakeAvailable(llhttp)
+
+message(STATUS "llhttp fetched from source (v9.4.3)")
 
 add_subdirectory(src)
 add_subdirectory(tests)
