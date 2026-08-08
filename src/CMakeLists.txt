@@ -1,6 +1,8 @@
 add_library(netp2_core
     observability/metrics.cpp
     protocol/http1_codec.cpp
+    resilience/circuit_breaker.cpp
+    resilience/rate_limiter.cpp
     routing/route_snapshot.cpp
     runtime/gateway_runtime.cpp
     runtime/spine.cpp
