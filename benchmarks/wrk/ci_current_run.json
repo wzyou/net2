@@ -1,0 +1,11 @@
+{
+  "rps": 27187.94,
+  "p50_ms": 2.12,
+  "p75_ms": 2.95,
+  "p90_ms": 3.61,
+  "p99_ms": 5.03,
+  "error_rate": 0.0,
+  "total_requests": 818221,
+  "error_count": 0,
+  "transfer_mbps": 3.01
+}

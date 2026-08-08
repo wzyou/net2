@@ -44,7 +44,7 @@ ConnectionPool::ConnectionPool(boost::asio::io_context& io, UpstreamConfig confi
 
 boost::asio::awaitable<std::pair<std::unique_ptr<UpstreamConnection>, UpstreamError>>
 ConnectionPool::borrow_connection(const std::string& host, std::uint16_t port) {
-    const auto pool_key = make_pool_key(host, port);
+    const PoolKey pool_key{host, port};
     auto& pool = pools_[pool_key];
 
     // 尝试从池中获取健康的连接
@@ -77,7 +77,7 @@ void ConnectionPool::return_connection(const std::string& host, std::uint16_t po
         return;  // 不健康的连接直接销毁
     }
 
-    const auto pool_key = make_pool_key(host, port);
+    const PoolKey pool_key{host, port};
     auto& pool = pools_[pool_key];
 
     // 检查池是否已满
@@ -133,10 +133,6 @@ ConnectionPool::create_new_connection(const std::string& host, std::uint16_t por
     } catch (...) {
         co_return std::make_pair(nullptr, UpstreamError::kAllUnavailable);
     }
-}
-
-std::string ConnectionPool::make_pool_key(const std::string& host, std::uint16_t port) const {
-    return host + ":" + std::to_string(port);
 }
 
 }  // namespace netp2::upstream
