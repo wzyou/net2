@@ -1,0 +1,14 @@
+name: benchmark
+
+on:
+  workflow_dispatch:
+
+jobs:
+  benchmark-placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Benchmark scaffold note
+        run: |
+          echo "Benchmark workflow scaffold is ready."
+          echo "Add wrk/ghz invocation scripts under benchmarks/ and scripts/ci."

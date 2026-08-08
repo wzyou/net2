@@ -1,0 +1,5 @@
+/Users/weyou/work/netp2/build/CMakeFiles/netp2_gateway.dir
+/Users/weyou/work/netp2/build/CMakeFiles/netp2_smoke_test.dir
+/Users/weyou/work/netp2/build/CMakeFiles/test.dir
+/Users/weyou/work/netp2/build/CMakeFiles/edit_cache.dir
+/Users/weyou/work/netp2/build/CMakeFiles/rebuild_cache.dir

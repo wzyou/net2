@@ -1,0 +1,12 @@
+server:
+  listen: 0.0.0.0:8080
+  workers: 0
+  reuse_port: true
+
+timeouts:
+  connect_ms: 5000
+  io_idle_ms: 30000
+
+features:
+  tracing: true
+  metrics: true

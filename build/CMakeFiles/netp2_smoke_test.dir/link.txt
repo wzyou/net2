@@ -1,0 +1,1 @@
+/usr/bin/clang++ -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/netp2_smoke_test.dir/tests/unit/smoke_test.cpp.o -o netp2_smoke_test

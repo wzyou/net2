@@ -1,0 +1,40 @@
+name: sanitizer
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  asan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++
+
+      - name: Configure ASan
+        run: cmake -S . -B build-asan -G Ninja -DNETP2_ENABLE_ASAN=ON -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build ASan
+        run: cmake --build build-asan
+
+      - name: Test ASan
+        run: ctest --test-dir build-asan --output-on-failure
+
+  tsan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++
+
+      - name: Configure TSan
+        run: cmake -S . -B build-tsan -G Ninja -DNETP2_ENABLE_TSAN=ON -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build TSan
+        run: cmake --build build-tsan
+
+      - name: Test TSan
+        run: ctest --test-dir build-tsan --output-on-failure

@@ -1,0 +1,12 @@
+routes:
+  - host: api.example.com
+    path_prefix: /v1
+    allowed_cidrs:
+      - 10.0.0.0/8
+    upstream_cluster: user_service
+
+upstream_clusters:
+  - name: user_service
+    endpoints:
+      - 10.10.1.10:8081
+      - 10.10.1.11:8081

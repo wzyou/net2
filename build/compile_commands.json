@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/Users/weyou/work/netp2/build",
+  "command": "/usr/bin/clang++  -I/Users/weyou/work/netp2/include -g -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/netp2_gateway.dir/src/app/main.cpp.o -c /Users/weyou/work/netp2/src/app/main.cpp",
+  "file": "/Users/weyou/work/netp2/src/app/main.cpp",
+  "output": "CMakeFiles/netp2_gateway.dir/src/app/main.cpp.o"
+},
+{
+  "directory": "/Users/weyou/work/netp2/build",
+  "command": "/usr/bin/clang++  -I/Users/weyou/work/netp2/include -g -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/netp2_smoke_test.dir/tests/unit/smoke_test.cpp.o -c /Users/weyou/work/netp2/tests/unit/smoke_test.cpp",
+  "file": "/Users/weyou/work/netp2/tests/unit/smoke_test.cpp",
+  "output": "CMakeFiles/netp2_smoke_test.dir/tests/unit/smoke_test.cpp.o"
+}
+]

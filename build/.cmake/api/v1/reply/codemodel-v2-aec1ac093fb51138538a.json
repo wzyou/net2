@@ -1,0 +1,87 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "netp2_core::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-netp2_core-Debug-c64f5e3a8ad11fb451ed.json",
+					"name" : "netp2_core",
+					"projectIndex" : 0
+				}
+			],
+			"directories" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0
+					],
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-b23a0b23c080df4d29ba.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "netp2",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "netp2_gateway::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-netp2_gateway-Debug-f191e7d70f8a7cbcbece.json",
+					"name" : "netp2_gateway",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "netp2_smoke_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-netp2_smoke_test-Debug-ba9442b68a34050a2c43.json",
+					"name" : "netp2_smoke_test",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/weyou/work/netp2/build",
+		"source" : "/Users/weyou/work/netp2"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	}
+}
