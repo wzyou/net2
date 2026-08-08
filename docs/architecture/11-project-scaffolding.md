@@ -130,6 +130,12 @@ Phase A 本地验收命令：
 - 完成 executor 亲和性约束：请求主链路不得隐式跨 executor 切换。
 - 引入 thread_local metrics 与基础 Prometheus 导出。
 
+Phase B 执行状态（Step 1，2026-08-08）：已完成
+- 新增多 Worker 运行时：`GatewayRuntime`，每个 Worker 拥有独立 `io_context` 与 `RuntimeSpine`。
+- 接入同端口监听：`RuntimeSpine` 支持 `SO_REUSEPORT` 开关并在主程序启用。
+- 主程序已切换为按 CPU 核数启动 Worker，保留信号驱动的优雅停止流程。
+- 新增集成测试：`netp2_worker_runtime_integration_test`，验证多 Worker 接入后请求可达。
+
 Phase A-B 里程碑约束：
 - `12.1 全局运行模型` MUST 在 Phase B 结束前达成并验收。
 - `12.2 协程与执行语义` MUST 在 Phase B 结束前达成并验收。

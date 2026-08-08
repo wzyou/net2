@@ -1,4 +1,5 @@
 add_library(netp2_core
+    runtime/gateway_runtime.cpp
     runtime/spine.cpp
 )
 
