@@ -26,6 +26,22 @@ netp2_enable_warnings(netp2_route_matcher_test)
 netp2_enable_sanitizers(netp2_route_matcher_test)
 add_test(NAME netp2_route_matcher_test COMMAND netp2_route_matcher_test)
 
+add_executable(netp2_rate_limiter_test
+    unit/rate_limiter_test.cpp
+)
+target_link_libraries(netp2_rate_limiter_test PRIVATE netp2_core)
+netp2_enable_warnings(netp2_rate_limiter_test)
+netp2_enable_sanitizers(netp2_rate_limiter_test)
+add_test(NAME netp2_rate_limiter_test COMMAND netp2_rate_limiter_test)
+
+add_executable(netp2_circuit_breaker_test
+    unit/circuit_breaker_test.cpp
+)
+target_link_libraries(netp2_circuit_breaker_test PRIVATE netp2_core)
+netp2_enable_warnings(netp2_circuit_breaker_test)
+netp2_enable_sanitizers(netp2_circuit_breaker_test)
+add_test(NAME netp2_circuit_breaker_test COMMAND netp2_circuit_breaker_test)
+
 add_executable(netp2_runtime_spine_integration_test
     integration/runtime_spine_integration_test.cpp
 )
