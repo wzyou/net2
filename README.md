@@ -19,8 +19,9 @@
 - 构建系统：`CMakeLists.txt` + `cmake/`
 - 配置样例：`configs/`
 - 测试目录：`tests/`
-- 基准目录：`benchmarks/`
+- 基准目录：`benchmarks/`（性能基准执行说明见 `benchmarks/wrk/README.md`）
 - CI 工作流：`.github/workflows/`
+- 运维脚本：`scripts/ops/`（部署、启停、健康检查、热重载）
 
 ## 本地快速开始
 ```bash
@@ -33,6 +34,25 @@ ctest --test-dir build --output-on-failure
 ```bash
 ./scripts/dev/build.sh
 ```
+
+## 性能基准
+```bash
+# 构建 Release 版本
+cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build -j
+
+# 执行性能基准（需先安装 wrk）
+cd benchmarks/wrk
+./run_baseline.sh --host localhost --port 8080
+```
+
+详细基准说明与 CI 门禁配置见 `docs/architecture/16-phase-d-implementation-guide.md`。
+
+## 运维手册
+- 部署与启停：`scripts/ops/`
+- 配置管理：`configs/gateway.template.yaml`
+- 运维手册：`docs/ops/runbook.md`（Phase D 补充）
+- 故障排查：`docs/ops/troubleshooting.md`（Phase D 补充）
 
 ## License
 MIT

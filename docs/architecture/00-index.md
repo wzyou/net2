@@ -20,6 +20,7 @@
 13. `13-must-implementation-mapping.md`
 14. `14-phase-c-implementation-guide.md`
 15. `15-phase-c-quality-validation.md` ← **Phase C 质量验证（ASan/TSan）**
+16. `16-phase-d-implementation-guide.md` ← **Phase D 性能基准与运维就绪**
 
 ## 范围声明
 - 本目录由“高性能 C++20 协程异步网关 v1.0 全量技术设计”拆分整理而来。

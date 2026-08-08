@@ -1,0 +1,14 @@
+Running 30s test @ http://localhost:18080/proxy/mock
+  4 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.48ms    1.40ms  32.63ms   98.18%
+    Req/Sec     7.31k     3.85k   10.43k    72.73%
+  Latency Distribution
+     50%    1.30ms
+     75%    1.41ms
+     90%    1.63ms
+     99%    4.27ms
+  31998 requests in 30.08s, 3.54MB read
+  Socket errors: connect 100, read 0, write 0, timeout 0
+Requests/sec:   1063.71
+Transfer/sec:    120.50KB

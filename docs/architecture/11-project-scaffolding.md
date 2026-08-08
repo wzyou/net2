@@ -177,8 +177,19 @@ Phase C 里程碑约束：
 - 每个 C-* 任务必须在 PR 中附 “MUST 条款 -> 代码位置 -> 验证命令/测试证据”。
 
 ### Phase D（Week 3+）
-- 引入 wrk/ghz 基准与性能回归门禁。
-- 补齐部署脚本、配置模板、运维手册。
+执行指导见 `16-phase-d-implementation-guide.md`。Phase D 目标是建立可重复的性能基准体系与生产就绪的运维支撑。
+
+- D-BENCHMARK-BASELINE：建立本地基准脚本与基线数据采集流程（wrk/ghz）。
+- D-BENCHMARK-CI：将基准集成到 CI，建立性能回归门禁（吞吐/P99/错误率阈值）。
+- D-DEPLOY-SCRIPTS：补齐构建、部署、启停、健康检查、热重载脚本。
+- D-CONFIG-TEMPLATES：补齐生产级配置模板（`gateway.template.yaml`）与配置校验脚本。
+- D-OPS-RUNBOOK：编写运维手册，覆盖部署、配置、可观测性、故障排查、升级回滚。
+- D-VALIDATION：全流程验收与文档对齐。
+
+Phase D 里程碑约束：
+- `12.7 可观测与门禁` MUST 在 Phase D 结束前具备可执行的性能基准与回归门禁。
+- `12.8 工程与治理` MUST 在 Phase D 结束前具备可重复的部署与运维流程。
+- 每个 D-* 任务必须在 PR 中附 "MUST 条款 -> 实现位置 -> 验收证据"。
 
 ## 11.7 进入编码前的 DoD（Definition of Done）
 进入大规模功能开发前必须满足：
