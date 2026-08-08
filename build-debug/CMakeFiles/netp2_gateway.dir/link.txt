@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/netp2_gateway.dir/src/app/main.cpp.o -o netp2_gateway

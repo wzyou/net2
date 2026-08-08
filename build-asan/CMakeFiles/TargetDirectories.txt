@@ -1,5 +1,0 @@
-/Users/weyou/work/netp2/build-asan/CMakeFiles/netp2_gateway.dir
-/Users/weyou/work/netp2/build-asan/CMakeFiles/netp2_smoke_test.dir
-/Users/weyou/work/netp2/build-asan/CMakeFiles/test.dir
-/Users/weyou/work/netp2/build-asan/CMakeFiles/edit_cache.dir
-/Users/weyou/work/netp2/build-asan/CMakeFiles/rebuild_cache.dir

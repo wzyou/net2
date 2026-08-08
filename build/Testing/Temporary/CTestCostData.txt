@@ -1,2 +1,0 @@
-netp2_smoke_test 1 0.705432
----

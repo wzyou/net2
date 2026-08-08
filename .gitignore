@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# CMake / build outputs
+/build/
+/build-*/
+/CMakeFiles/
+/CMakeCache.txt
+/CTestTestfile.cmake
+/cmake_install.cmake
+/Makefile
+/compile_commands.json
+/Testing/
+
+# Generic binary artifacts
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.lib
+*.exe
+*.out
+
+# Sanitizer / coverage / profiling artifacts
+*.gcno
+*.gcda
+*.profraw
+*.profdata
+*.log
