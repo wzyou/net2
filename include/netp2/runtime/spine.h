@@ -15,6 +15,7 @@ using tcp = asio::ip::tcp;
 struct SpineConfig {
     std::string listen_address{"127.0.0.1"};
     std::uint16_t listen_port{18080};
+    bool enable_reuse_port{false};
 };
 
 class RuntimeSpine {
@@ -25,6 +26,7 @@ public:
     void stop();
 
     std::uint16_t local_port() const;
+    bool is_open() const;
 
 private:
     asio::awaitable<void> accept_loop();

@@ -1,7 +1,12 @@
 #include "netp2/runtime/spine.h"
 
 #include <array>
+#include <cerrno>
+#include <cstring>
 #include <string_view>
+#include <system_error>
+
+#include <sys/socket.h>
 
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
@@ -30,6 +35,19 @@ RuntimeSpine::RuntimeSpine(asio::io_context& io, const SpineConfig& config)
 
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(tcp::acceptor::reuse_address(true));
+
+    if (config_.enable_reuse_port) {
+#if defined(SO_REUSEPORT)
+        const int on = 1;
+        if (::setsockopt(acceptor_.native_handle(), SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on)) !=
+            0) {
+            throw std::system_error(errno, std::generic_category(), "setsockopt SO_REUSEPORT");
+        }
+#else
+        throw std::runtime_error("SO_REUSEPORT is not supported on this platform");
+#endif
+    }
+
     acceptor_.bind(endpoint);
     acceptor_.listen(asio::socket_base::max_listen_connections);
 }
@@ -40,11 +58,18 @@ void RuntimeSpine::start() {
 
 void RuntimeSpine::stop() {
     boost::system::error_code ec;
-    static_cast<void>(acceptor_.close(ec));
+    [[maybe_unused]] const auto close_result = acceptor_.close(ec);
+    if (ec) {
+        return;
+    }
 }
 
 std::uint16_t RuntimeSpine::local_port() const {
     return acceptor_.local_endpoint().port();
+}
+
+bool RuntimeSpine::is_open() const {
+    return acceptor_.is_open();
 }
 
 asio::awaitable<void> RuntimeSpine::accept_loop() {
@@ -83,7 +108,11 @@ asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
         asio::redirect_error(asio::use_awaitable, write_ec));
 
     boost::system::error_code shutdown_ec;
-    static_cast<void>(socket.shutdown(tcp::socket::shutdown_both, shutdown_ec));
+    [[maybe_unused]] const auto shutdown_result =
+        socket.shutdown(tcp::socket::shutdown_both, shutdown_ec);
+    if (shutdown_ec) {
+        co_return;
+    }
 }
 
 }  // namespace netp2::runtime
