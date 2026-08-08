@@ -1,0 +1,139 @@
+# netp2 Gateway Configuration Template
+# 参考：16-phase-d-implementation-guide.md 第 16.6 节
+
+# 运行时配置
+server:
+  # 监听地址（格式：IP:PORT）
+  listen: 0.0.0.0:8080
+  
+  # Worker 数量（0=自动检测 CPU 核心数）
+  workers: 0
+  
+  # SO_REUSEPORT 开关（允许多 Worker 监听同端口）
+  reuse_port: true
+  
+  # CPU 绑核策略（linux_strict|none）
+  # linux_strict: Linux 平台严格绑核
+  # none: 不绑核
+  cpu_affinity: none
+
+# 超时配置
+timeouts:
+  # 连接超时（毫秒）
+  connect_ms: 5000
+  
+  # I/O 空闲超时（毫秒）
+  io_idle_ms: 30000
+  
+  # 请求处理超时（毫秒）
+  request_ms: 60000
+
+# 协议配置
+protocol:
+  http1:
+    # Header 总大小上限（字节）
+    max_header_size: 8192
+    
+    # Header 数量上限
+    max_headers: 100
+    
+    # 请求体大小上限（字节）
+    max_body_size: 10485760  # 10MB
+    
+    # 是否强制 Host header
+    require_host: true
+  
+  http2:
+    # HTTP/2 支持（Phase E 功能）
+    enabled: false
+    
+    # 最大并发流
+    max_concurrent_streams: 100
+
+# 路由配置
+routing:
+  # 路由规则文件路径
+  rules_file: configs/routes.sample.yaml
+  
+  # 默认后端（路由未命中时）
+  default_backend: null
+
+# 限流配置
+rate_limit:
+  # 全局限流开关
+  enabled: true
+  
+  # 默认配额（请求数/秒）
+  default_rps: 1000
+  
+  # 时间窗口（秒）
+  window_seconds: 1
+  
+  # 拒绝响应码
+  reject_status_code: 429
+
+# 断路器配置
+circuit_breaker:
+  # 断路器开关
+  enabled: true
+  
+  # 失败阈值（连续失败次数触发 Open）
+  failure_threshold: 5
+  
+  # 半开探测间隔（秒）
+  half_open_interval_seconds: 10
+  
+  # 恢复阈值（半开状态下成功次数触发 Closed）
+  recovery_threshold: 3
+
+# Upstream 配置
+upstream:
+  # 连接池大小（per host per worker）
+  pool_size: 10
+  
+  # 连接超时（毫秒）
+  connect_timeout_ms: 3000
+  
+  # Keep-Alive 时长（秒）
+  keepalive_seconds: 60
+  
+  # 健康检查间隔（秒）
+  health_check_interval_seconds: 30
+
+# 可观测性配置
+observability:
+  # Metrics 配置
+  metrics:
+    enabled: true
+    
+    # Prometheus 导出端点
+    export_endpoint: /metrics
+    
+    # Metrics 端口（0=使用主端口）
+    export_port: 0
+  
+  # 日志配置
+  logging:
+    # 日志级别（trace|debug|info|warn|error）
+    level: info
+    
+    # 日志输出（stdout|file）
+    output: stdout
+    
+    # 日志文件路径（output=file 时有效）
+    file_path: /var/log/netp2_gateway.log
+  
+  # Trace 配置
+  tracing:
+    enabled: true
+    
+    # 采样率（0.0-1.0）
+    sample_rate: 0.1
+    
+    # Trace 导出端点（Phase E 功能）
+    export_endpoint: null
+
+# 特性开关（兼容性保留）
+features:
+  tracing: true
+  metrics: true
