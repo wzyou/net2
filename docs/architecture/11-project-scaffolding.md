@@ -141,6 +141,18 @@ Phase B 执行状态（Step 2，2026-08-08）：已完成
 - 新增违规计数器（per-spine 与 runtime 聚合），用于验证请求主链路无隐式跨 executor 切换。
 - 在 `netp2_worker_runtime_integration_test` 增加断言：亲和性违规计数必须为 0。
 
+Phase B 执行状态（Step 3，2026-08-08）：已完成
+- 新增 `MetricsRegistry` 与 Worker 分片指标模型，Worker 线程启动时绑定 thread_local 指标分片。
+- 在 `RuntimeSpine` 最小链路接入打点：accept、request、response、bytes in/out。
+- 新增 `/metrics` 基础导出端点，按抓取时聚合输出 Prometheus 文本格式。
+- 新增集成测试：`netp2_metrics_export_integration_test`，验证指标端点可用与关键指标暴露。
+
+Phase B 执行状态（Step 4，2026-08-08）：已完成
+- 在 `RuntimeSpine` 落地最小请求主链路：`accept -> parse(request-line) -> route -> mock upstream -> response`。
+- 新增路由分支：`/proxy/mock` 命中 mock upstream（200），未知路径返回 404，不合法请求返回 400。
+- 在主链路补充显式公平让出点（`asio::post`），避免连接协程长时间占用同核执行权。
+- 新增集成测试：`netp2_pipeline_integration_test`，覆盖命中、未命中、坏请求三类路径。
+
 Phase A-B 里程碑约束：
 - `12.1 全局运行模型` MUST 在 Phase B 结束前达成并验收。
 - `12.2 协程与执行语义` MUST 在 Phase B 结束前达成并验收。

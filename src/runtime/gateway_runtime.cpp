@@ -11,6 +11,8 @@
 #include <sstream>
 #endif
 
+#include "netp2/observability/metrics.h"
+
 namespace netp2::runtime {
 
 namespace {
@@ -51,6 +53,7 @@ GatewayRuntime::GatewayRuntime(const SpineConfig& config, std::size_t worker_cou
         Worker worker;
         worker.io = std::make_unique<boost::asio::io_context>(1);
         worker.spine = std::make_unique<RuntimeSpine>(*worker.io, config_);
+        worker.metrics_shard = netp2::observability::MetricsRegistry::instance().create_worker_shard();
         workers_.push_back(std::move(worker));
     }
 }
@@ -76,8 +79,10 @@ void GatewayRuntime::start() {
         for (std::size_t i = 0; i < workers_.size(); ++i) {
             auto& worker = workers_[i];
             worker.spine->start();
-            worker.thread = std::thread([io = worker.io.get()]() {
+            worker.thread = std::thread([io = worker.io.get(), shard = worker.metrics_shard]() {
+                netp2::observability::MetricsRegistry::instance().bind_thread_local_shard(shard.get());
                 io->run();
+                netp2::observability::MetricsRegistry::instance().unbind_thread_local_shard();
             });
 
 #if defined(__linux__)

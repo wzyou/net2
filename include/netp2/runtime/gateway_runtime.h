@@ -7,6 +7,7 @@
 
 #include <boost/asio/io_context.hpp>
 
+#include "netp2/observability/metrics.h"
 #include "netp2/runtime/spine.h"
 
 namespace netp2::runtime {
@@ -27,6 +28,7 @@ private:
     struct Worker {
         std::unique_ptr<boost::asio::io_context> io;
         std::unique_ptr<RuntimeSpine> spine;
+        netp2::observability::MetricsRegistry::ShardPtr metrics_shard;
         std::thread thread;
     };
 
