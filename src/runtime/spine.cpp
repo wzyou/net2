@@ -20,12 +20,11 @@
 
 #include "netp2/observability/metrics.h"
 #include "netp2/protocol/request_context.h"
+#include "netp2/routing/route_snapshot.h"
 
 namespace netp2::runtime {
 
 namespace {
-constexpr std::string_view kDefaultRoutePath = "/";
-constexpr std::string_view kMockUpstreamPath = "/proxy/mock";
 constexpr std::string_view kLegacyPhaseABody = "netp2 phase-a\n";
 constexpr std::string_view kMockUpstreamBody = "mock upstream ok\n";
 constexpr std::string_view kNotFoundBody = "route not found\n";
@@ -33,23 +32,12 @@ constexpr std::string_view kMethodNotAllowedBody = "method not allowed\n";
 
 constexpr std::string_view kMetricsPath = "/metrics";
 
-enum class RouteDecision {
-    kMockUpstream,
-    kNotFound,
-};
-
-RouteDecision route_request(std::string_view path) {
-    if (path == kDefaultRoutePath || path == kMockUpstreamPath) {
-        return RouteDecision::kMockUpstream;
-    }
-    return RouteDecision::kNotFound;
-}
-
 asio::awaitable<std::string_view> mock_upstream_call(std::string_view path) {
     // 主动让出执行权，避免热点连接长期占用同核事件循环。
     co_await asio::post(asio::use_awaitable);
-    if (path == kDefaultRoutePath) {
-        co_return kLegacyPhaseABody;
+    // 统一返回 mock 响应
+    if (path == "/" || path.starts_with("/proxy")) {
+        co_return path == "/" ? kLegacyPhaseABody : kMockUpstreamBody;
     }
     co_return kMockUpstreamBody;
 }
@@ -93,6 +81,32 @@ RuntimeSpine::RuntimeSpine(asio::io_context& io, const SpineConfig& config)
 
     acceptor_.bind(endpoint);
     acceptor_.listen(asio::socket_base::max_listen_connections);
+
+    // 创建默认路由快照
+    auto default_snapshot = std::make_shared<routing::RouteSnapshot>();
+    
+    // 配置特定路径
+    routing::RouteRule rule_proxy;
+    rule_proxy.host_pattern = "*";
+    rule_proxy.path_prefix = "/proxy/mock";
+    rule_proxy.target.cluster_name = "mock-upstream";
+    rule_proxy.priority = 10;
+    
+    routing::RouteRule rule_root;
+    rule_root.host_pattern = "*";
+    rule_root.path_prefix = "/";  // 精确匹配根路径
+    rule_root.target.cluster_name = "root-service";
+    rule_root.priority = 100;
+    
+    default_snapshot->add_rule(std::move(rule_proxy));
+    default_snapshot->add_rule(std::move(rule_root));
+    default_snapshot->finalize();
+    
+    route_snapshot_ = std::move(default_snapshot);
+}
+
+void RuntimeSpine::set_route_snapshot(std::shared_ptr<routing::RouteSnapshot> snapshot) {
+    route_snapshot_ = std::move(snapshot);
 }
 
 void RuntimeSpine::start() {
@@ -220,18 +234,21 @@ asio::awaitable<void> RuntimeSpine::handle_connection(tcp::socket socket) {
             metrics_body,
             "text/plain; version=0.0.4; charset=utf-8");
     } else {
-        // 路由决策
-        switch (route_request(ctx.target)) {
-        case RouteDecision::kMockUpstream: {
+        // 使用路由快照进行匹配
+        const auto route_match = route_snapshot_->match(
+            ctx.host,
+            ctx.target,
+            "127.0.0.1");  // TODO: 从 socket 获取真实 client IP
+
+        if (route_match.matched) {
+            // 路由匹配成功，调用 mock upstream
             const std::string_view upstream_body = co_await mock_upstream_call(ctx.target);
             response_status_code = 200;
             response_payload = build_http_response(200, "OK", upstream_body);
-            break;
-        }
-        case RouteDecision::kNotFound:
+        } else {
+            // 路由未匹配
             response_status_code = 404;
             response_payload = build_http_response(404, "Not Found", kNotFoundBody);
-            break;
         }
     }
 

@@ -1,6 +1,7 @@
 add_library(netp2_core
     observability/metrics.cpp
     protocol/http1_codec.cpp
+    routing/route_snapshot.cpp
     runtime/gateway_runtime.cpp
     runtime/spine.cpp
 )

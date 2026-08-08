@@ -9,6 +9,7 @@
 #include <boost/asio/ip/tcp.hpp>
 
 #include "netp2/protocol/http1_codec.h"
+#include "netp2/routing/route_snapshot.h"
 
 namespace netp2::runtime {
 
@@ -29,6 +30,9 @@ public:
     void start();
     void stop();
 
+    /// 设置路由快照（C-CONFIG-1 将改为 RCU 发布）
+    void set_route_snapshot(std::shared_ptr<routing::RouteSnapshot> snapshot);
+
     std::uint16_t local_port() const;
     bool is_open() const;
     std::uint64_t affinity_violation_count() const;
@@ -43,7 +47,7 @@ private:
     tcp::acceptor acceptor_;
     SpineConfig config_;
     std::atomic<std::uint64_t> affinity_violation_count_{0};
-    // 移除共享的 codec_，每个连接创建独立实例
+    std::shared_ptr<routing::RouteSnapshot> route_snapshot_;  // C-CONFIG-1 将改为原子指针 + RCU
 };
 
 }  // namespace netp2::runtime
