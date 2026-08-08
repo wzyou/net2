@@ -10,6 +10,14 @@ netp2_enable_warnings(netp2_smoke_test)
 netp2_enable_sanitizers(netp2_smoke_test)
 add_test(NAME netp2_smoke_test COMMAND netp2_smoke_test)
 
+add_executable(netp2_http1_codec_test
+    unit/http1_codec_test.cpp
+)
+target_link_libraries(netp2_http1_codec_test PRIVATE netp2_core)
+netp2_enable_warnings(netp2_http1_codec_test)
+netp2_enable_sanitizers(netp2_http1_codec_test)
+add_test(NAME netp2_http1_codec_test COMMAND netp2_http1_codec_test)
+
 add_executable(netp2_runtime_spine_integration_test
     integration/runtime_spine_integration_test.cpp
 )

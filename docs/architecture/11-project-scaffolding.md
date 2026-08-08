@@ -158,8 +158,23 @@ Phase A-B 里程碑约束：
 - `12.2 协程与执行语义` MUST 在 Phase B 结束前达成并验收。
 
 ### Phase C（Week 2）
-- 引入限流、断路器、连接池、RCU 热重载。
-- 建立 sanitizer 与 race 任务。
+执行指导见 `14-phase-c-implementation-guide.md`。Phase C 必须先关闭协议解析与 `RequestContext` 归一缺口，再推进路由、限流、upstream、热重载与质量门禁。
+
+- C-PROTO-1：实现 HTTP/1.1 `llhttp` codec，将请求行、Header、Body 元信息归一到 `RequestContext`。
+- C-PROTO-2：补齐协议校验边界，包括 Host 必填、Header 大小/数量上限、Content-Length 一致性、Chunked 解析与错误响应映射。
+- C-PROTO-3：协议层接入 thread_local Buffer 与 RAII 借还模型，确保解析热路径不引入跨线程共享状态。
+- C-PROTO-4：将 `RuntimeSpine` 中 Phase B 临时 request-line 解析替换为 `src/protocol/` 模块输出的 `RequestContext`。
+- C-PROTO-5：接入 HTTP/2 `nghttp2` 卸载路径，并保持上层只消费统一 `RequestContext`。
+- C-ROUTE-1：引入 Host + Path(Trie LPM) + Client IP 三维路由匹配，并将规则编译为只读快照。
+- C-RESILIENCE-1：引入 thread_local 限流、三态断路器与可观测拒绝路径。
+- C-UPSTREAM-1：引入按核心本地化的 upstream Keep-Alive 连接池，覆盖复用前健康检查与建连超时。
+- C-CONFIG-1：落地 RCU 热重载流程：新快照构建 -> 按核投递 -> release/acquire 切换 -> 旧版本自然回收。
+- C-QUALITY-1：建立 sanitizer 与 race 任务，覆盖协议解析、资源回收、热重载同步边界。
+
+Phase C 里程碑约束：
+- `12.3 内存与协议栈` MUST 作为 Phase C 第一优先级闭环，HTTP/1.1 主路径不得继续依赖 Phase B 临时 request-line 解析。
+- `12.4 路由与限流`、`12.5 Upstream 与韧性`、`12.6 热重载与内存模型` MUST 在 Phase C 结束前具备最小可验收实现。
+- 每个 C-* 任务必须在 PR 中附 “MUST 条款 -> 代码位置 -> 验证命令/测试证据”。
 
 ### Phase D（Week 3+）
 - 引入 wrk/ghz 基准与性能回归门禁。

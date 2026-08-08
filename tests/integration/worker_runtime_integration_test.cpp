@@ -78,13 +78,17 @@ int main() {
 
                 bool ok = true;
                 for (int i = 0; i < 16; ++i) {
-                    ok = ok && wait_until_ready(config.listen_port);
+                    bool req_ok = wait_until_ready(config.listen_port);
+                    ok = ok && req_ok;
                 }
 
-                ok = ok && (runtime.total_affinity_violation_count() == 0);
+                const auto violations = runtime.total_affinity_violation_count();
+                ok = ok && (violations == 0);
 
                 runtime.stop();
                 return ok ? 0 : 1;
+            } catch (const std::exception& ex) {
+                continue;
             } catch (...) {
                 continue;
             }

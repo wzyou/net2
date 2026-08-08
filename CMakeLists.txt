@@ -24,5 +24,17 @@ enable_testing()
 find_package(Boost 1.74 REQUIRED)
 find_package(Threads REQUIRED)
 
+# llhttp for HTTP/1.1 parsing
+# Try to find llhttp library
+find_path(LLHTTP_INCLUDE_DIR llhttp.h)
+find_library(LLHTTP_LIBRARY NAMES llhttp libllhttp)
+
+if(NOT LLHTTP_INCLUDE_DIR OR NOT LLHTTP_LIBRARY)
+    message(FATAL_ERROR "llhttp not found. Install with: brew install llhttp (macOS) or apt-get install libllhttp-dev (Linux)")
+endif()
+
+message(STATUS "Found llhttp: ${LLHTTP_LIBRARY}")
+message(STATUS "llhttp include: ${LLHTTP_INCLUDE_DIR}")
+
 add_subdirectory(src)
 add_subdirectory(tests)
