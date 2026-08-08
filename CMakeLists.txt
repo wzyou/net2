@@ -10,6 +10,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Generate compile_commands.json for IDE/clangd support
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(NETP2_BUILD_TESTS "Build tests" ON)
 option(NETP2_ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(NETP2_ENABLE_TSAN "Enable ThreadSanitizer" OFF)
