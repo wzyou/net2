@@ -12,6 +12,31 @@
 
 namespace netp2::upstream {
 
+/// 连接池 Key（避免热路径字符串拼接）
+struct PoolKey {
+    std::string host;
+    std::uint16_t port;
+
+    bool operator==(const PoolKey& other) const {
+        return port == other.port && host == other.host;
+    }
+};
+
+}  // namespace netp2::upstream
+
+/// PoolKey 的 Hash 函数
+template <>
+struct std::hash<netp2::upstream::PoolKey> {
+    std::size_t operator()(const netp2::upstream::PoolKey& key) const noexcept {
+        // 组合 hash：host 的 hash 与 port 异或
+        const auto h1 = std::hash<std::string>{}(key.host);
+        const auto h2 = std::hash<std::uint16_t>{}(key.port);
+        return h1 ^ (h2 << 1);  // 简单但有效的组合
+    }
+};
+
+namespace netp2::upstream {
+
 /// 上游连接配置
 struct UpstreamConfig {
     std::chrono::milliseconds connect_timeout{5000};   // 建连超时
@@ -88,13 +113,11 @@ private:
     boost::asio::awaitable<std::pair<std::unique_ptr<UpstreamConnection>, UpstreamError>>
     create_new_connection(const std::string& host, std::uint16_t port);
 
-    std::string make_pool_key(const std::string& host, std::uint16_t port) const;
-
     boost::asio::io_context& io_;
     UpstreamConfig config_;
 
-    // 按 Host:Port 分组的连接池
-    std::unordered_map<std::string, std::vector<std::unique_ptr<UpstreamConnection>>> pools_;
+    // 按 Host:Port 分组的连接池（使用结构化 Key 避免字符串拼接）
+    std::unordered_map<PoolKey, std::vector<std::unique_ptr<UpstreamConnection>>> pools_;
 };
 
 }  // namespace netp2::upstream
